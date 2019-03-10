@@ -1,19 +1,32 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import generic
+import netaddr
+
+from . import generic
+from . import converter
 
 import logging
 __log__ = logging.getLogger(__name__)
 
 
-class SubnetsController(generic.Controller):
-    def __init__(self, api):
-        super(SubnetsController, self).__init__(api, "subnets")
+class Subnet(generic.Item):
+    attributes = {'mask': ('mask', converter.IntegerConverter())}
 
-    def cidr(self, addr):
+    @property
+    def slaves(self):
         return [
-            Item(self, x) for x in (self._execute("GET", ["cidr", addr]) or [])
+            self.controller.type(x)
+            for x in self.controller.get(self.id, 'slaves') or []
         ]
 
+    @property
+    def network(self):
+        return netaddr.IPNetwork('%s/%d' % (self.subnet, self.mask))
 
-generic.API.controller['subnets'] = SubnetsController
+
+class SubnetsController(generic.Controller):
+    def __init__(self, api):
+        super().__init__(api, "subnets", Subnet)
+
+    def cidr(self, addr):
+        return [self.type(x) for x in self.get("cidr", str(addr)) or []]

@@ -1,102 +1,87 @@
-#!/usr/bin/env python
-
-import requests
-from requests.auth import HTTPBasicAuth
-import json
-from mcrypt import MCRYPT
-import base64
+#!/usr/bin/env python3
 
 import logging
 __log__ = logging.getLogger(__name__)
 
 
-class API(object):
-    controller = {}
+class Item(object):
+    def __init__(self, controller, item):
+        self.__controller = controller
+        if isinstance(item, int):
+            self.__values = self.controller.get(item)
+        elif isinstance(item, dict):
+            self.__values = item
+        else:
+            raise TypeError
 
-    def __init__(self, url, app_id, key, user, password):
-        self.url = url
-        self.app_id = app_id
-        self.app_key = key
-        self.user = user
-        self.password = password
-        self.token = False
+    @property
+    def controller(self):
+        return self.__controller
+
+    @property
+    def values(self):
+        return self.__values
+
+    @property
+    def attributes(self):
+        return self.__class__.attributes
+
+    @property
+    def id(self):
+        return int(self.values['id'])
+
+    def get(self, name):
+        return self.values[name]
+
+    def set(self, name, value):
+        if self.values[name] != value:
+            if self.controller.patch(self.id, id=self.id, **{name: value}):
+                self.values[name] = value
+                return True
+        return False
 
     def __getattr__(self, name):
-        if name in API.controller:
-            tmp = API.controller[name](self)
-            self.__setattr__(name, tmp)
-            return tmp
+        if name in self.attributes:
+            key, decoder = self.attributes[name]
+            return decoder.decode(self.get(key))
         else:
             raise AttributeError
 
-    def login(self, username, password):
-        response = requests.post(
-            self.base + 'user/', auth=HTTPBasicAuth(username, password))
-        if response.status_code != 200:
-            logger.error("Login Problem %s " % response.status_code)
-            logger.error(response.text)
-        ticket = json.loads(response.text)
-        self.token = ticket['data']['token']
-
-    def execute(self, method, controller, ids, parameter):
-        url = self.url
-        headers = {'Content-Type': 'application/json'}
-        data = parameter
-        if self.key:
-            data = {'controller': controller}
-            for idx, value in enumerate(ids):
-                key = 'id' % (idx + 1) if idx else 'id'
-                data[key] = value
-            data.update(parameter)
-            cryptor = MCRYPT('rijndael-256', 'ecb')
-            cryptor.init(self.app_key)
-            data = {
-                'app_id':
-                self.app_id,
-                'enc_request':
-                base64.b64encode(bytes(cryptor.encrypt(json.dumps(data))))
-            }
+    def __setattr__(self, name, value):
+        if name in self.attributes:
+            key, encoder = self.attributes[name]
         else:
-            url += '/'.join([self.app_id, controller] + ids) + '/'
-            headers['token'] = self.token
-        response = requests.request(
-            method, url, headers=headers, data=data)
-        tmp = json.loads(response.text)
-        result = True if tmp['success'] else False
-        if result and 'data' in tmp:
-            result = tmp['data']
-        else:
-            logger.info(tmp['message'])
-        return result
-
-
-class Item(object):
-    def __init__(self, controller, item):
-        self._controller = controller
-        if type(item) in [str, int]:
-            self._data = controller.item(_id)
-        else:
-            self._data = item
-
-    def get(self, name):
-        return self._data[name]
-
-    def set(self, name, value):
-        self._data[name] = value
-        self._controller.patch(self._data['id'], {name: value})
+            raise AttributeError
 
 
 class Controller(object):
-    def __init__(self, api, name):
-        self.api = api
-        self.name = name
+    def __init__(self, api, name, typ):
+        self.__api = api
+        self.__name = name
+        self.__type = typ
 
-    def _execute(self, method, identifiers=[], params=[]):
-        return self.api.execute(method, self.name, identifiers, params)
+    @property
+    def api(self):
+        return self.__api
 
-    def get(self, _id):
-        return self.api.execute("GET", self.name, _id)
+    @property
+    def name(self):
+        return self.__name
 
-    def patch(self, _id, values):
-        assert (type(values) == dict)
-        return self.api.execute("PATCH", self.name, _id, values)
+    @property
+    def type(self):
+        return self.__type
+
+    def execute(self, method, *identifiers, **parameters):
+        return self.api.execute(method, self.name, identifiers, parameters)
+
+    def get(self, *identifiers):
+        return self.api.execute("GET", self.name, identifiers, {})
+
+    def patch(self, *identifiers, **values):
+        return self.api.execute("PATCH", self.name, identifiers, values)
+
+    put = patch
+
+    def __getitem__(self, key):
+        return self.type(key)

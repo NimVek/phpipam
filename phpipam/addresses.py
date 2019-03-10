@@ -1,29 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import generic
+from . import generic
+from . import converter
 
 import logging
 __log__ = logging.getLogger(__name__)
 
 
 class Address(generic.Item):
-    def get(self, name):
-        if name == 'subnet':
-            return self._controller.api.controller('subnets').get(
-                self.get('subnetId'))
-        else:
-            return super(Address, self).get(name)
+    attributes = {
+        'exclude_ping': ('excludePing', converter.BooleanConverter()),
+        'subnet_id': ('subnetId', converter.IntegerConverter()),
+        'ip': ('ip', converter.IPConverter())
+    }
+
+    @property
+    def subnet(self):
+        return self.controller.api.subnets[self.subnet_id]
 
 
 class AddressesController(generic.Controller):
-    def __init__(self, api):
-        super(AddressesController, self).__init__(api, "addresses")
+    def __init__(self, api, name="addresses"):
+        super().__init__(api, name, Address)
 
     def search(self, addr):
-        return [
-            Address(self, x)
-            for x in (self._execute("GET", ["search", addr]) or [])
-        ]
-
-
-generic.API.controller['addresses'] = AddressesController
+        return [self.type(x) for x in self.get("search", str(addr)) or []]
