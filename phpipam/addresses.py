@@ -20,8 +20,8 @@ class Address(generic.Item):
 
 
 class AddressesController(generic.Controller):
-    def __init__(self, api, name="addresses"):
+    def __init__(self, api, name='addresses'):
         super().__init__(api, name, Address)
 
     def search(self, addr):
-        return [self.type(x) for x in self.get("search", str(addr)) or []]
+        return [self.type(self,x) for x in self.get("search", str(addr)) or []]

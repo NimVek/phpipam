@@ -15,11 +15,11 @@ class Converter(abc.ABC):
     def default(self):
         return self.__default
 
-    @abstractmethod
+    @abc.abstractmethod
     def encode(self, item):
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def decode(self, item):
         raise NotImplementedError
 
@@ -55,7 +55,7 @@ class IntegerConverter(Converter):
         return str(item)
 
     def decode(self, item):
-        return netaddr.IPAddress(item)
+        return int(item)
 
 
 class IPConverter(Converter):

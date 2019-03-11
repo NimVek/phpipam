@@ -10,12 +10,14 @@ __log__ = logging.getLogger(__name__)
 
 
 class Subnet(generic.Item):
-    attributes = {'mask': ('mask', converter.IntegerConverter())}
+    attributes = {
+'subnet':('subnet', converter.IPConverter()),
+'mask': ('mask', converter.IntegerConverter())}
 
     @property
     def slaves(self):
         return [
-            self.controller.type(x)
+            self.controller[x]
             for x in self.controller.get(self.id, 'slaves') or []
         ]
 
@@ -25,8 +27,8 @@ class Subnet(generic.Item):
 
 
 class SubnetsController(generic.Controller):
-    def __init__(self, api):
-        super().__init__(api, "subnets", Subnet)
+    def __init__(self, api,name= 'subnets'):
+        super().__init__(api, name, Subnet)
 
     def cidr(self, addr):
-        return [self.type(x) for x in self.get("cidr", str(addr)) or []]
+        return [self.type(self,x) for x in self.get("cidr", str(addr)) or []]

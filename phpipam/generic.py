@@ -50,6 +50,9 @@ class Item(object):
     def __setattr__(self, name, value):
         if name in self.attributes:
             key, encoder = self.attributes[name]
+            self.set(key,encoder.encode(value))
+        elif name.startswith('_Item__'):
+          super().__setattr__(name,value)
         else:
             raise AttributeError
 
@@ -84,4 +87,4 @@ class Controller(object):
     put = patch
 
     def __getitem__(self, key):
-        return self.type(key)
+        return self.type(self,key)

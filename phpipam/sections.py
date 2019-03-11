@@ -12,7 +12,7 @@ class Section(generic.Item):
     @property
     def subnets(self):
         return [
-            self.controller.api.subnets.type(x)
+            self.controller.api.subnets[x]
             for x in self.controller.get(self.id, 'subnets') or []
         ]
 
@@ -23,4 +23,4 @@ class SectionsController(generic.Controller):
 
     def __iter__(self):
         for x in self.get() or []:
-            yield self.type(x)
+            yield self.type(self,x)
