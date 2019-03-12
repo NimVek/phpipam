@@ -54,7 +54,8 @@ class API(interface.APIInterface):
                 base64.b64encode(bytes(cryptor.encrypt(json.dumps(data))))
             }
         else:
-            url += '/'.join([self.app_id, controller] + [str(x) for x in ids ]) + '/'
+            url += '/'.join([self.app_id, controller] + [str(x)
+                                                         for x in ids]) + '/'
             headers['token'] = self.token
         response = requests.request(
             method, url, headers=headers, data=json.dumps(data))

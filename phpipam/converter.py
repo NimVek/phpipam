@@ -17,11 +17,12 @@ class Converter(abc.ABC):
     def decode(self, item):
         raise NotImplementedError
 
-    def __call__(self,item):
-        if isinstance(item,str):
-           return self.decode(item)
+    def __call__(self, item):
+        if isinstance(item, str):
+            return self.decode(item)
         else:
-           return self.encode(item)
+            return self.encode(item)
+
 
 class DefaultConverter(Converter):
     def __init__(self, default):
@@ -41,32 +42,33 @@ class DefaultConverter(Converter):
 
     def encode(self, item):
         if item is None:
-          return None
+            return None
         else:
-         try:
-          return self._encode(item)
-         except:
-          return self._encode(self.default)
+            try:
+                return self._encode(item)
+            except:
+                return self._encode(self.default)
 
     def decode(self, item):
         if item is None:
-          return self.default
+            return self.default
         try:
-          return self._decode(item)
+            return self._decode(item)
         except:
-          return self.default
+            return self.default
+
 
 class TypeConverter(DefaultConverter):
-    def __init__(self,typ,default):
-      super().__init__(default)
-      self.__type = typ
+    def __init__(self, typ, default):
+        super().__init__(default)
+        self.__type = typ
 
     @property
     def type(self):
         return self.__type
 
     def _encode(self, item):
-        assert isinstance(item,self.type)
+        assert isinstance(item, self.type)
         return str(item)
 
     def _decode(self, item):
@@ -94,36 +96,43 @@ class BooleanConverter(DictionaryConverter):
     def __init__(self, default=False):
         super().__init__({True: '1', False: '0'}, default)
 
+
 class YesNoConverter(DictionaryConverter):
     def __init__(self, default=False):
         super().__init__({True: 'Yes', False: 'No'}, default)
+
 
 class IntegerConverter(TypeConverter):
     def __init__(self, default=None):
         super().__init__(int, default)
 
+
 class StringConverter(TypeConverter):
     def __init__(self, default=None):
         super().__init__(str, default)
 
+
 class IPConverter(TypeConverter):
     def __init__(self, default=None):
-        super().__init__(netaddr.IPAddress,default)
+        super().__init__(netaddr.IPAddress, default)
+
 
 class MACConverter(DefaultConverter):
     def __init__(self, default=None):
         super().__init__(default)
 
-    def _encode(self,item):
-       item.dialect = netaddr.mac_unix_expanded
-       return str(item)
+    def _encode(self, item):
+        item.dialect = netaddr.mac_unix_expanded
+        return str(item)
 
-    def _decode(self,item):
-       return netaddr.EUI(item, dialect=netaddr.mac_unix_expanded)
+    def _decode(self, item):
+        return netaddr.EUI(item, dialect=netaddr.mac_unix_expanded)
+
 
 class TimestampConverter(Converter):
-    def encode(self,item):
-       return item.strftime('%Y-%m-%d %H:%M:%S')
+    def encode(self, item):
+        return item.strftime('%Y-%m-%d %H:%M:%S')
 
-    def decode(self,item):
-       return datetime.datetime.strptime(item or '1970-01-01 00:00:00','%Y-%m-%d %H:%M:%S')
+    def decode(self, item):
+        return datetime.datetime.strptime(item or '1970-01-01 00:00:00',
+                                          '%Y-%m-%d %H:%M:%S')

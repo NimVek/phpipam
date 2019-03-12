@@ -11,12 +11,13 @@ __log__ = logging.getLogger(__name__)
 
 class Subnet(generic.Item):
     _attributes = {
-     'subnet':('subnet', converter.IPConverter(), True),
-     'mask': ('mask', converter.IntegerConverter(), True),
-     'description': ('description', converter.StringConverter(), False),
-     'section_id': ('sectionId', converter.IntegerConverter(), True),
-     'ping': ('pingSubnet', converter.BooleanConverter(False), True),
-     'discover': ('discoverSubnet', converter.BooleanConverter(False), True),
+        'subnet': ('subnet', converter.IPConverter(), True),
+        'mask': ('mask', converter.IntegerConverter(), True),
+        'description': ('description', converter.StringConverter(), False),
+        'section_id': ('sectionId', converter.IntegerConverter(), True),
+        'ping': ('pingSubnet', converter.BooleanConverter(False), True),
+        'discover': ('discoverSubnet', converter.BooleanConverter(False),
+                     True),
     }
 
     @property
@@ -32,8 +33,8 @@ class Subnet(generic.Item):
 
 
 class SubnetsController(generic.Controller):
-    def __init__(self, api,name= 'subnets'):
+    def __init__(self, api, name='subnets'):
         super().__init__(api, name, Subnet)
 
     def cidr(self, addr):
-        return [self.type(self,x) for x in self.get("cidr", str(addr)) or []]
+        return [self.type(self, x) for x in self.get("cidr", str(addr)) or []]

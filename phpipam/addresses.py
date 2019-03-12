@@ -16,7 +16,6 @@ class Address(generic.Item):
         'hostname': ('hostname', converter.StringConverter(), False),
         'mac': ('mac', converter.MACConverter(), False),
         'owner': ('owner', converter.StringConverter(), False),
-#        'tag': ('tag', converter.TagConverter(), False),
         'ptr_ignore': ('PTRignore', converter.BooleanConverter(), False),
         'ptr': ('PTR', converter.IntegerConverter(), False),
         'device_id': ('deviceId', converter.IntegerConverter(), False),
@@ -36,7 +35,7 @@ class Address(generic.Item):
 
     @tag.setter
     def tag(self, value):
-        self.set('tag',self.controller.TagConverter.encode(value))
+        self.set('tag', self.controller.TagConverter.encode(value))
 
 
 class AddressesController(generic.Controller):
@@ -45,10 +44,14 @@ class AddressesController(generic.Controller):
         self.__tag_converter = None
 
     def search(self, addr):
-        return [self.type(self,x) for x in self.get("search", str(addr)) or []]
+        return [
+            self.type(self, x) for x in self.get("search", str(addr)) or []
+        ]
 
     @property
     def TagConverter(self):
         if not self.__tag_converter:
-         self.__tag_converter = converter.DictionaryConverter({ x['type']: x['id'] for x in self.get('tags') or []}, 'Offline')
+            self.__tag_converter = converter.DictionaryConverter(
+                {x['type']: x['id']
+                 for x in self.get('tags') or []}, 'Offline')
         return self.__tag_converter

@@ -28,8 +28,8 @@ class Item(object):
     @property
     def attributes(self):
         result = {
-          'id': ('id', converter.IntegerConverter(), True),
-          'edit_date': ('editDate', converter.TimestampConverter(), True)
+            'id': ('id', converter.IntegerConverter(), True),
+            'edit_date': ('editDate', converter.TimestampConverter(), True)
         }
         result.update(self.__class__._attributes)
         return result
@@ -46,31 +46,36 @@ class Item(object):
 
     def __getattr__(self, name):
         if name in self.attributes:
-            key, decoder, read_only = self.attributes[name]
+            key, decoder, _ = self.attributes[name]
             return decoder.decode(self.get(key))
         else:
             __log__.debug((name))
-            raise AttributeError
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (self.__class__.__name__, name))
 
     def __setattr__(self, name, value):
         obj = getattr(self.__class__, name, None)
         if isinstance(obj, property):
-          if not obj.fset:
-            raise AttributeError
-          else:
-            obj.fset(self, value)
+            if not obj.fset:
+                raise AttributeError("can't set attribute")
+            else:
+                obj.fset(self, value)
         elif name in self.attributes:
             key, encoder, read_only = self.attributes[name]
-            self.set(key,encoder.encode(value))
+            if read_only:
+                raise AttributeError("can't set attribute")
+            else:
+                self.set(key, encoder.encode(value))
         elif name.startswith('_Item__'):
-          super().__setattr__(name,value)
+            super().__setattr__(name, value)
         else:
-            raise AttributeError
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (self.__class__.__name__, name))
 
 
 class Controller(interface.ControllerInterface):
     def __init__(self, api, name, typ):
-        super().__init__(api,name)
+        super().__init__(api, name)
         self.__type = typ
 
     @property
@@ -89,4 +94,4 @@ class Controller(interface.ControllerInterface):
     put = patch
 
     def __getitem__(self, key):
-        return self.type(self,key)
+        return self.type(self, key)
