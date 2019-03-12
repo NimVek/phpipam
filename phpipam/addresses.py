@@ -30,10 +30,25 @@ class Address(generic.Item):
     def subnet(self):
         return self.controller.api.subnets[self.subnet_id]
 
+    @property
+    def tag(self):
+        return self.controller.TagConverter.decode(self.get('tag'))
+
+    @tag.setter
+    def tag(self, value):
+        self.set('tag',self.controller.TagConverter.encode(value))
+
 
 class AddressesController(generic.Controller):
     def __init__(self, api, name='addresses'):
         super().__init__(api, name, Address)
+        self.__tag_converter = None
 
     def search(self, addr):
         return [self.type(self,x) for x in self.get("search", str(addr)) or []]
+
+    @property
+    def TagConverter(self):
+        if not self.__tag_converter:
+         self.__tag_converter = converter.DictionaryConverter({ x['type']: x['id'] for x in self.get('tags') or []}, 'Offline')
+        return self.__tag_converter

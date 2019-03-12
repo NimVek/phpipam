@@ -53,7 +53,13 @@ class Item(object):
             raise AttributeError
 
     def __setattr__(self, name, value):
-        if name in self.attributes:
+        obj = getattr(self.__class__, name, None)
+        if isinstance(obj, property):
+          if not obj.fset:
+            raise AttributeError
+          else:
+            obj.fset(self, value)
+        elif name in self.attributes:
             key, encoder, read_only = self.attributes[name]
             self.set(key,encoder.encode(value))
         elif name.startswith('_Item__'):

@@ -126,4 +126,4 @@ class TimestampConverter(Converter):
        return item.strftime('%Y-%m-%d %H:%M:%S')
 
     def decode(self,item):
-       return datetime.datetime.strptime(item,'%Y-%m-%d %H:%M:%S')
+       return datetime.datetime.strptime(item or '1970-01-01 00:00:00','%Y-%m-%d %H:%M:%S')
