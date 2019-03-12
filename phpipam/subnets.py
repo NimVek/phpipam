@@ -10,9 +10,14 @@ __log__ = logging.getLogger(__name__)
 
 
 class Subnet(generic.Item):
-    attributes = {
-'subnet':('subnet', converter.IPConverter()),
-'mask': ('mask', converter.IntegerConverter())}
+    _attributes = {
+     'subnet':('subnet', converter.IPConverter(), True),
+     'mask': ('mask', converter.IntegerConverter(), True),
+     'description': ('description', converter.StringConverter(), False),
+     'section_id': ('sectionId', converter.IntegerConverter(), True),
+     'ping': ('pingSubnet', converter.BooleanConverter(False), True),
+     'discover': ('discoverSubnet', converter.BooleanConverter(False), True),
+    }
 
     @property
     def slaves(self):

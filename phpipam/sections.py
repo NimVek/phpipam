@@ -7,7 +7,7 @@ __log__ = logging.getLogger(__name__)
 
 
 class Section(generic.Item):
-    attributes = {}
+    _attributes = {}
 
     @property
     def subnets(self):
@@ -23,4 +23,4 @@ class SectionsController(generic.Controller):
 
     def __iter__(self):
         for x in self.get() or []:
-            yield self.type(self,x)
+            yield self[x]

@@ -8,10 +8,22 @@ __log__ = logging.getLogger(__name__)
 
 
 class Address(generic.Item):
-    attributes = {
-        'exclude_ping': ('excludePing', converter.BooleanConverter()),
-        'subnet_id': ('subnetId', converter.IntegerConverter()),
-        'ip': ('ip', converter.IPConverter())
+    _attributes = {
+        'subnet_id': ('subnetId', converter.IntegerConverter(), True),
+        'ip': ('ip', converter.IPConverter(), True),
+        'is_gateway': ('is_gateway', converter.BooleanConverter(), False),
+        'description': ('description', converter.StringConverter(), False),
+        'hostname': ('hostname', converter.StringConverter(), False),
+        'mac': ('mac', converter.MACConverter(), False),
+        'owner': ('owner', converter.StringConverter(), False),
+#        'tag': ('tag', converter.TagConverter(), False),
+        'ptr_ignore': ('PTRignore', converter.BooleanConverter(), False),
+        'ptr': ('PTR', converter.IntegerConverter(), False),
+        'device_id': ('deviceId', converter.IntegerConverter(), False),
+        'port': ('port', converter.StringConverter(), False),
+        'note': ('note', converter.StringConverter(), False),
+        'last_seen': ('lastSeen', converter.TimestampConverter(), False),
+        'exclude_ping': ('excludePing', converter.BooleanConverter(), False),
     }
 
     @property

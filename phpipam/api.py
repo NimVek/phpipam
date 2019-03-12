@@ -6,11 +6,13 @@ import json
 #from mcrypt import MCRYPT
 import base64
 
+from . import interface
+
 import logging
 __log__ = logging.getLogger(__name__)
 
 
-class API(object):
+class API(interface.APIInterface):
     controller = {}
 
     def __init__(self, url, app_id, key, user, password):
@@ -20,14 +22,6 @@ class API(object):
         self.user = user
         self.password = password
         self.token = False
-
-    def __getattr__(self, name):
-        if name in API.controller:
-            tmp = API.controller[name](self, name)
-            self.__setattr__(name, tmp)
-            return tmp
-        else:
-            raise AttributeError
 
     def login(self, username, password):
         response = requests.post(

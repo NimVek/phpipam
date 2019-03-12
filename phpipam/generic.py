@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from . import interface
+from . import converter
+
 import logging
 __log__ = logging.getLogger(__name__)
 
@@ -24,11 +27,12 @@ class Item(object):
 
     @property
     def attributes(self):
-        return self.__class__.attributes
-
-    @property
-    def id(self):
-        return int(self.values['id'])
+        result = {
+          'id': ('id', converter.IntegerConverter(), True),
+          'edit_date': ('editDate', converter.TimestampConverter(), True)
+        }
+        result.update(self.__class__._attributes)
+        return result
 
     def get(self, name):
         return self.values[name]
@@ -42,14 +46,15 @@ class Item(object):
 
     def __getattr__(self, name):
         if name in self.attributes:
-            key, decoder = self.attributes[name]
+            key, decoder, read_only = self.attributes[name]
             return decoder.decode(self.get(key))
         else:
+            __log__.debug((name))
             raise AttributeError
 
     def __setattr__(self, name, value):
         if name in self.attributes:
-            key, encoder = self.attributes[name]
+            key, encoder, read_only = self.attributes[name]
             self.set(key,encoder.encode(value))
         elif name.startswith('_Item__'):
           super().__setattr__(name,value)
@@ -57,19 +62,10 @@ class Item(object):
             raise AttributeError
 
 
-class Controller(object):
+class Controller(interface.ControllerInterface):
     def __init__(self, api, name, typ):
-        self.__api = api
-        self.__name = name
+        super().__init__(api,name)
         self.__type = typ
-
-    @property
-    def api(self):
-        return self.__api
-
-    @property
-    def name(self):
-        return self.__name
 
     @property
     def type(self):
