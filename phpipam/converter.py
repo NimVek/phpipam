@@ -129,10 +129,13 @@ class MACConverter(DefaultConverter):
         return netaddr.EUI(item, dialect=netaddr.mac_unix_expanded)
 
 
-class TimestampConverter(Converter):
-    def encode(self, item):
+class TimestampConverter(DefaultConverter):
+    def __init__(self, default=None):
+        super().__init__(default)
+
+    def _encode(self, item):
         return item.strftime('%Y-%m-%d %H:%M:%S')
 
-    def decode(self, item):
+    def _decode(self, item):
         return datetime.datetime.strptime(item or '1970-01-01 00:00:00',
                                           '%Y-%m-%d %H:%M:%S')

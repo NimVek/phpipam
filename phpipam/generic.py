@@ -7,24 +7,7 @@ import logging
 __log__ = logging.getLogger(__name__)
 
 
-class Item(object):
-    def __init__(self, controller, item):
-        self.__controller = controller
-        if isinstance(item, int):
-            self.__values = self.controller.get(item)
-        elif isinstance(item, dict):
-            self.__values = item
-        else:
-            raise TypeError
-
-    @property
-    def controller(self):
-        return self.__controller
-
-    @property
-    def values(self):
-        return self.__values
-
+class Item(interface.ItemInterface):
     @property
     def attributes(self):
         result = {
@@ -34,43 +17,17 @@ class Item(object):
         result.update(self.__class__._attributes)
         return result
 
-    def get(self, name):
-        return self.values[name]
 
-    def set(self, name, value):
-        if self.values[name] != value:
-            if self.controller.patch(self.id, id=self.id, **{name: value}):
-                self.values[name] = value
-                return True
-        return False
+class Custom(interface.ItemInterface):
+    @property
+    def attributes(self):
+        return self.controller.custom_fields
 
-    def __getattr__(self, name):
-        if name in self.attributes:
-            key, decoder, _ = self.attributes[name]
-            return decoder.decode(self.get(key))
-        else:
-            __log__.debug((name))
-            raise AttributeError("'%s' object has no attribute '%s'" %
-                                 (self.__class__.__name__, name))
 
-    def __setattr__(self, name, value):
-        obj = getattr(self.__class__, name, None)
-        if isinstance(obj, property):
-            if not obj.fset:
-                raise AttributeError("can't set attribute")
-            else:
-                obj.fset(self, value)
-        elif name in self.attributes:
-            key, encoder, read_only = self.attributes[name]
-            if read_only:
-                raise AttributeError("can't set attribute")
-            else:
-                self.set(key, encoder.encode(value))
-        elif name.startswith('_Item__'):
-            super().__setattr__(name, value)
-        else:
-            raise AttributeError("'%s' object has no attribute '%s'" %
-                                 (self.__class__.__name__, name))
+class CustomItem(Item):
+    @property
+    def custom(self):
+        return Custom(self.controller, self.values)
 
 
 class Controller(interface.ControllerInterface):
@@ -95,3 +52,17 @@ class Controller(interface.ControllerInterface):
 
     def __getitem__(self, key):
         return self.type(self, key)
+
+
+class CustomController(Controller):
+    @property
+    def custom_fields(self):
+        result = {}
+        for key, value in self.get("custom_fields").items():
+            conv = converter.StringConverter()
+            if value['type'] == 'text':
+                conv = converter.StringConverter()
+            elif value['type'] == 'tinyint(1)':
+                conv = converter.BooleanConverter()
+            result[key[7:]] = (key, conv, False)
+        return result

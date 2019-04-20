@@ -6,7 +6,7 @@ import logging
 __log__ = logging.getLogger(__name__)
 
 
-class Section(generic.Item):
+class Section(generic.CustomItem):
     _attributes = {}
 
     @property
@@ -17,7 +17,7 @@ class Section(generic.Item):
         ]
 
 
-class SectionsController(generic.Controller):
+class SectionsController(generic.CustomController):
     def __init__(self, api, name='sections'):
         super().__init__(api, name, Section)
 

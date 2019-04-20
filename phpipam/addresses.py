@@ -7,7 +7,7 @@ import logging
 __log__ = logging.getLogger(__name__)
 
 
-class Address(generic.Item):
+class Address(generic.CustomItem):
     _attributes = {
         'subnet_id': ('subnetId', converter.IntegerConverter(), True),
         'ip': ('ip', converter.IPConverter(), True),
@@ -38,7 +38,7 @@ class Address(generic.Item):
         self.set('tag', self.controller.TagConverter.encode(value))
 
 
-class AddressesController(generic.Controller):
+class AddressesController(generic.CustomController):
     def __init__(self, api, name='addresses'):
         super().__init__(api, name, Address)
         self.__tag_converter = None

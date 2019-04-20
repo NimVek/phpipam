@@ -9,7 +9,7 @@ import logging
 __log__ = logging.getLogger(__name__)
 
 
-class Subnet(generic.Item):
+class Subnet(generic.CustomItem):
     _attributes = {
         'subnet': ('subnet', converter.IPConverter(), True),
         'mask': ('mask', converter.IntegerConverter(), True),
@@ -28,11 +28,18 @@ class Subnet(generic.Item):
         ]
 
     @property
+    def addresses(self):
+        return [
+            self.controller.api.addresses[x]
+            for x in self.controller.get(self.id, 'addresses') or []
+        ]
+
+    @property
     def network(self):
         return netaddr.IPNetwork('%s/%d' % (self.subnet, self.mask))
 
 
-class SubnetsController(generic.Controller):
+class SubnetsController(generic.CustomController):
     def __init__(self, api, name='subnets'):
         super().__init__(api, name, Subnet)
 
